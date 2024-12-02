@@ -56,25 +56,88 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const { action = 'home', cn = '', id = '', version = currentKeyVersion } = req.query;
 
     if (action === 'home') {
-      const homeContent = `
-        <form action="/api/encrypt" method="get" class="space-y-2">
-          <input type="hidden" name="action" value="encrypt">
+  const homeContent = `
+    <div class="space-y-8">
+      <div class="bg-gray-900 rounded-lg p-6">
+        <h2 class="text-xl font-bold text-gray-100 mb-3">How It Works</h2>
+        <div class="text-sm text-gray-300 space-y-4">
+          <p class="leading-relaxed">
+            This demo showcases a secure, database-free encryption system:
+          </p>
+          <ol class="list-decimal list-inside space-y-2">
+            <li>Enter your unique event data (e.g., transaction ID, event timestamp)</li>
+            <li>The system generates an irreversible cryptographic hash from this data</li>
+            <li>This hash is used as a key to encrypt your content</li>
+            <li>No sensitive data or keys are stored - everything can be regenerated using your event data</li>
+            <li>To decrypt, you'll need to provide the same event data to regenerate the hash</li>
+          </ol>
+        </div>
+      </div>
+
+      <form action="/api/encrypt" method="get" class="space-y-6">
+        <input type="hidden" name="action" value="encrypt">
+        
+        <div class="space-y-2">
           <label class="block">
-            <span class="text-sm text-gray-300">Unique Event Data (ID):</span>
-            <input type="text" name="id" placeholder="Enter unique ID..." 
-              class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" required>
+            <span class="text-sm font-semibold text-gray-300">Unique Event Data (ID):</span>
+            <div class="mt-1">
+              <input 
+                type="text" 
+                name="id" 
+                placeholder="e.g., transaction_123, event_timestamp" 
+                class="w-full bg-gray-800 rounded-lg p-3 text-sm text-gray-200 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
+                required
+              >
+            </div>
+            <p class="mt-1 text-xs text-gray-400">This data will be used to generate the encryption hash. Must be provided again for decryption.</p>
           </label>
+        </div>
+
+        <div class="space-y-2">
           <label class="block">
-            <span class="text-sm text-gray-300">Data to Encrypt (CN):</span>
-            <textarea name="cn" placeholder="Enter data to encrypt..." 
-              class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" required></textarea>
+            <span class="text-sm font-semibold text-gray-300">Content to Encrypt:</span>
+            <div class="mt-1">
+              <textarea 
+                name="cn" 
+                placeholder="Enter the sensitive data you want to encrypt..." 
+                class="w-full bg-gray-800 rounded-lg p-3 text-sm text-gray-200 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-h-[100px]" 
+                required
+              ></textarea>
+            </div>
+            <p class="mt-1 text-xs text-gray-400">This content will be encrypted using a hash derived from your event data.</p>
           </label>
-          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 rounded p-2 text-sm font-bold text-white">
-            Encrypt Data
-          </button>
-        </form>`;
-      return res.send(generateHTML('Secure Encryption Demo', homeContent));
-    }
+        </div>
+
+        <button 
+          type="submit" 
+          class="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 px-4 text-sm font-bold text-white transition-colors duration-200 inline-flex items-center justify-center space-x-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+          </svg>
+          <span>Generate Hash & Encrypt Data</span>
+        </button>
+      </form>
+
+      <div class="bg-blue-900/20 rounded-lg p-4 border border-blue-800/30">
+        <div class="flex items-start space-x-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="flex-1">
+            <h3 class="text-sm font-semibold text-blue-400">Security Note</h3>
+            <p class="mt-1 text-xs text-gray-300">
+              This system uses cryptographic hashing to eliminate the need for storing sensitive keys or data. 
+              The hash generated from your event data is irreversible but reproducible, 
+              allowing for secure encryption and decryption without a centralized database.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  return res.send(generateHTML('Secure Database-Free Encryption Demo', homeContent));
+}
 
     if (action === 'encrypt') {
   if (!cn || !id) {
