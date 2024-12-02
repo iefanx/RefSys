@@ -89,8 +89,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       const encryptionKey = generateKey(masterSecret, salt, currentKeyVersion);
       const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
 
-      const encryptContent = 
-        <p class="text-sm text-gray-300"<p class="text-sm text-gray-300">The data has been securely encrypted using an irreversible hash generated from your unique ID.</p>
+      const encryptContent = `
+        <p class="text-sm text-gray-300">The data has been securely encrypted using an irreversible hash generated from your unique ID.</p>
         <div class="mt-4">
           <label class="block text-sm font-bold text-gray-300">Encrypted Data:</label>
           <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${encryptedData}</textarea>
@@ -100,9 +100,10 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         )}&iv=${iv}&id=${id}&version=${currentKeyVersion}" 
           class="block mt-4 bg-green-600 hover:bg-green-700 rounded p-2 text-center text-white font-bold">
           Decrypt Data
-        </a>;
+        </a>`;
       return res.send(generateHTML('Encryption Result', encryptContent));
     }
+
     if (action === 'decrypt') {
       const { encryptedCN, iv } = req.query;
 
@@ -124,7 +125,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           <label class="block text-sm font-bold text-gray-300">Decrypted Data:</label>
           <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${decryptedData}</textarea>
         </div>
-        <a href="/api/encrypt" 
+        <a href="/" 
           class="block mt-4 bg-gray-600 hover:bg-gray-700 rounded p-2 text-center text-white font-bold">
           Back to Home
         </a>`;
