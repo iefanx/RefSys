@@ -143,32 +143,82 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 }
 
     if (action === 'decrypt') {
-      const { encryptedCN, iv } = req.query;
+  const { encryptedCN, iv } = req.query;
+  
+  if (!encryptedCN || !iv || !id) {
+    const errorHTML = generateHTML(
+      'Error',
+      `<p class="text-red-500 text-center">Missing required parameters for decryption!</p>`
+    );
+    return res.status(400).send(errorHTML);
+  }
 
-      if (!encryptedCN || !iv || !id) {
-        const errorHTML = generateHTML(
-          'Error',
-          `<p class="text-red-500 text-center">Missing required parameters for decryption!</p>`
-        );
-        return res.status(400).send(errorHTML);
-      }
+  // Regenerate the same hash from event data
+  const eventHash = crypto.createHmac('sha256', masterSecret)
+    .update(id.toString())
+    .digest('hex');
+  
+  // Generate decryption key using the regenerated hash
+  const decryptionKey = generateKey(masterSecret, eventHash, parseInt(version as string, 10));
+  
+  // Decrypt the data using the regenerated key and original IV
+  const decryptedData = decrypt(encryptedCN.toString(), decryptionKey, iv.toString());
 
-      const salt = crypto.createHmac('sha256', masterSecret).update(id.toString()).digest('hex');
-      const decryptionKey = generateKey(masterSecret, salt, parseInt(version as string, 10));
-      const decryptedData = decrypt(encryptedCN.toString(), decryptionKey, iv.toString());
+  const decryptContent = `
+    <div class="space-y-6">
+      <div class="bg-gray-900 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-200 mb-2">Decryption Process</h3>
+        <p class="text-sm text-gray-300 leading-relaxed">
+          Your data has been successfully decrypted using a secure, database-free process:
+          <ul class="list-disc list-inside mt-2 space-y-1">
+            <li>The original hash was regenerated using your event data</li>
+            <li>This reconstructed hash was used to derive the decryption key</li>
+            <li>The decryption process used the original IV for security</li>
+            <li>No keys or hashes needed to be stored in a database</li>
+          </ul>
+        </p>
+      </div>
 
-      const decryptContent = `
-        <p class="text-sm text-gray-300">The encrypted data was decrypted using the same hash derived from your unique ID.</p>
-        <div class="mt-4">
-          <label class="block text-sm font-bold text-gray-300">Decrypted Data:</label>
-          <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${decryptedData}</textarea>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-bold text-gray-300">Regenerated Hash:</label>
+          <input class="w-full bg-gray-800 rounded p-2 mt-1 text-sm font-mono text-gray-200" 
+            readonly value="${eventHash}" />
         </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-300">Used IV:</label>
+          <input class="w-full bg-gray-800 rounded p-2 mt-1 text-sm font-mono text-gray-200" 
+            readonly value="${iv}" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-300">Decrypted Data:</label>
+          <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" 
+            readonly>${decryptedData}</textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-center space-x-4">
         <a href="/api/encrypt" 
-          class="block mt-4 bg-gray-600 hover:bg-gray-700 rounded p-2 text-center text-white font-bold">
-          Back to Home
-        </a>`;
-      return res.send(generateHTML('Decryption Result', decryptContent));
-    }
+          class="bg-gray-600 hover:bg-gray-700 rounded-lg px-6 py-3 text-center text-white font-bold inline-flex items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <span>Back to Home</span>
+        </a>
+        <a href="/api/encrypt?action=encrypt" 
+          class="bg-green-600 hover:bg-green-700 rounded-lg px-6 py-3 text-center text-white font-bold inline-flex items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+          </svg>
+          <span>Encrypt New Data</span>
+        </a>
+      </div>
+    </div>`;
+
+  return res.send(generateHTML('Decryption Result', decryptContent));
+}
 
     const errorHTML = generateHTML(
       'Error',
