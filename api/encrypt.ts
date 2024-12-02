@@ -57,10 +57,10 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
     if (action === 'home') {
   const homeContent = `
-    <div class="space-y-8">
-      <div class="bg-gray-900 rounded-lg p-6">
+    <div class="space-y-3">
+      <div class="bg-gray-900 rounded-lg p-2">
         <h2 class="text-xl font-bold text-gray-100 mb-3">How It Works</h2>
-        <div class="text-sm text-gray-300 space-y-4">
+        <div class="text-sm text-gray-300 space-y-2">
           <p class="leading-relaxed">
             This demo showcases a secure, database-free encryption system:
           </p>
@@ -77,7 +77,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       <form action="/api/encrypt" method="get" class="space-y-6">
         <input type="hidden" name="action" value="encrypt">
         
-        <div class="space-y-2">
+        <div class="space-y-2 px-2">
           <label class="block">
             <span class="text-sm font-semibold text-gray-300">Unique Event Data (ID):</span>
             <div class="mt-1">
