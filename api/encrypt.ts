@@ -95,7 +95,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
 
   const encryptContent = `
-    <div class="space-y-2">
+    <div class="space-y-4">
       <div class="bg-gray-900 rounded-lg p-2">
         <h3 class="text-lg font-semibold text-gray-200 mb-2">Security Information</h3>
         <p class="text-sm text-gray-300 leading-relaxed">
