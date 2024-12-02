@@ -77,32 +77,70 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (action === 'encrypt') {
-      if (!cn || !id) {
-        const errorHTML = generateHTML(
-          'Error',
-          `<p class="text-red-500 text-center">Both Event Data (ID) and Data to Encrypt (CN) are required!</p>`
-        );
-        return res.status(400).send(errorHTML);
-      }
+  if (!cn || !id) {
+    const errorHTML = generateHTML(
+      'Error',
+      `<p class="text-red-500 text-center">Both Event Data (ID) and Data to Encrypt (CN) are required!</p>`
+    );
+    return res.status(400).send(errorHTML);
+  }
 
-      const salt = crypto.createHmac('sha256', masterSecret).update(id.toString()).digest('hex');
-      const encryptionKey = generateKey(masterSecret, salt, currentKeyVersion);
-      const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
+  // Generate a unique hash from the event data (ID)
+  const eventHash = crypto.createHmac('sha256', masterSecret)
+    .update(id.toString())
+    .digest('hex');
+  
+  // Use the hash as salt for key generation
+  const encryptionKey = generateKey(masterSecret, eventHash, currentKeyVersion);
+  const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
 
-      const encryptContent = `
-        <p class="text-sm text-gray-300">The data has been securely encrypted using an irreversible hash generated from your unique ID.</p>
-        <div class="mt-4">
-          <label class="block text-sm font-bold text-gray-300">Encrypted Data:</label>
-          <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${encryptedData}</textarea>
+  const encryptContent = `
+    <div class="space-y-6">
+      <div class="bg-gray-900 rounded-lg p-4">
+        <h3 class="text-lg font-semibold text-gray-200 mb-2">Security Information</h3>
+        <p class="text-sm text-gray-300 leading-relaxed">
+          Your data has been encrypted using a secure process:
+          <ul class="list-disc list-inside mt-2 space-y-1">
+            <li>A unique hash is generated from your event data</li>
+            <li>This hash is used to derive the encryption key</li>
+            <li>No sensitive data is stored - everything can be regenerated using your event data</li>
+          </ul>
+        </p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-bold text-gray-300">Event Hash:</label>
+          <input class="w-full bg-gray-800 rounded p-2 mt-1 text-sm font-mono text-gray-200" 
+            readonly value="${eventHash}" />
         </div>
-        <a href="/api/encrypt?action=decrypt&encryptedCN=${encodeURIComponent(
-          encryptedData
-        )}&iv=${iv}&id=${id}&version=${currentKeyVersion}" 
-          class="block mt-4 bg-green-600 hover:bg-green-700 rounded p-2 text-center text-white font-bold">
-          Decrypt Data
-        </a>`;
-      return res.send(generateHTML('Encryption Result', encryptContent));
-    }
+
+        <div>
+          <label class="block text-sm font-bold text-gray-300">Initialization Vector (IV):</label>
+          <input class="w-full bg-gray-800 rounded p-2 mt-1 text-sm font-mono text-gray-200" 
+            readonly value="${iv}" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-300">Encrypted Data:</label>
+          <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm font-mono text-gray-200" 
+            readonly>${encryptedData}</textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-center">
+        <a href="/api/encrypt?action=decrypt&encryptedCN=${encodeURIComponent(encryptedData)}&iv=${iv}&id=${id}&version=${currentKeyVersion}" 
+          class="bg-green-600 hover:bg-green-700 rounded-lg px-6 py-3 text-center text-white font-bold inline-flex items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+          </svg>
+          <span>Generate Hash & Decrypt</span>
+        </a>
+      </div>
+    </div>`;
+
+  return res.send(generateHTML('Encryption Result', encryptContent));
+}
 
     if (action === 'decrypt') {
       const { encryptedCN, iv } = req.query;
@@ -125,7 +163,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           <label class="block text-sm font-bold text-gray-300">Decrypted Data:</label>
           <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${decryptedData}</textarea>
         </div>
-        <a href="/" 
+        <a href="/api/encrypt" 
           class="block mt-4 bg-gray-600 hover:bg-gray-700 rounded p-2 text-center text-white font-bold">
           Back to Home
         </a>`;
