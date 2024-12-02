@@ -166,11 +166,11 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   const decryptContent = `
     <div class="space-y-6">
-      <div class="bg-gray-900 rounded-lg p-4">
+      <div class="bg-gray-900 rounded-lg p-3 py-2">
         <h3 class="text-lg font-semibold text-gray-200 mb-2">Decryption Process</h3>
         <p class="text-sm text-gray-300 leading-relaxed">
           Your data has been successfully decrypted using a secure, database-free process:
-          <ul class="list-disc list-inside mt-2 space-y-1">
+          <ul class="list-disc text-sm list-inside mt-2 space-y-1">
             <li>The original hash was regenerated using your event data</li>
             <li>This reconstructed hash was used to derive the decryption key</li>
             <li>The decryption process used the original IV for security</li>
@@ -202,7 +202,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       <div class="flex justify-center space-x-4">
         
         <a href="/api/encrypt?action=encrypt" 
-          class="bg-green-600 hover:bg-green-700 rounded-lg px-6 py-3 text-center text-white font-bold inline-flex items-center space-x-2">
+          class="bg-green-600 hover:bg-green-700 rounded-lg px-4 py-2 text-center text-white text-smfont-bold inline-flex items-center space-x-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
           </svg>
