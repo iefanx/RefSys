@@ -35,7 +35,7 @@ function generateHTML(title: string, content: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
+  <title class="pt-3">${title}</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white font-sans">
@@ -96,7 +96,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   const encryptContent = `
     <div class="space-y-4">
-      <div class="bg-gray-900 rounded-lg p-4">
+      <div class="bg-gray-900 rounded-lg p-3 py-2">
         <h3 class="text-lg font-semibold text-gray-200 mb-2">Security Information</h3>
         <p class="text-sm text-gray-300 leading-relaxed">
           Your data has been encrypted using a secure process:
@@ -108,7 +108,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         </p>
       </div>
 
-      <div class="space-y-2">
+      <div class="space-y-2 px-2">
         <div>
           <label class="block text-sm font-bold text-gray-300">Event Hash:</label>
           <input class="w-full bg-gray-800 rounded p-2 mt-1 text-sm font-mono text-gray-200" 
