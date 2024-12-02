@@ -100,7 +100,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         <h3 class="text-lg font-semibold text-gray-200 mb-2">Security Information</h3>
         <p class="text-sm text-gray-300 leading-relaxed">
           Your data has been encrypted using a secure process:
-          <ul class="list-disc list-inside mt-2 space-y-1">
+          <ul class="list-disc text-sm list-inside mt-2 space-y-1">
             <li>A unique hash is generated from your event data</li>
             <li>This hash is used to derive the encryption key</li>
             <li>No sensitive data is stored - everything can be regenerated using your event data</li>
