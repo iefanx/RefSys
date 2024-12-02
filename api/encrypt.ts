@@ -103,6 +103,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           <h2 class="font-bold text-sm">Encrypted Data:</h2>
           <textarea class="w-full bg-gray-800 rounded-lg p-2 text-sm text-gray-300" readonly>${encryptedData}</textarea>
         </div>
+        <div class="hidden">
         <div class="mb-4">
           <h2 class="font-bold text-sm">IV:</h2>
           <textarea class="w-full bg-gray-800 rounded-lg p-2 text-sm text-gray-300" readonly>${iv}</textarea>
@@ -110,6 +111,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         <div class="mb-4">
           <h2 class="font-bold text-sm">Irreversible Hash:</h2>
           <textarea class="w-full bg-gray-800 rounded-lg p-2 text-sm text-gray-300" readonly>${salt}</textarea>
+        </div>
         </div>
         <a href="/api/encrypt?action=decrypt&encryptedCN=${encodeURIComponent(
           encryptedData
