@@ -111,7 +111,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           <h2 class="font-bold text-sm">Irreversible Hash:</h2>
           <textarea class="w-full bg-gray-800 rounded-lg p-2 text-sm text-gray-300" readonly>${salt}</textarea>
         </div>
-        <a href="/?action=decrypt&encryptedCN=${encodeURIComponent(
+        <a href="/api/encrypt?action=decrypt&encryptedCN=${encodeURIComponent(
           encryptedData
         )}&iv=${iv}&id=${id}&version=${currentKeyVersion}" 
           class="w-full block bg-green-600 hover:bg-green-700 rounded-lg px-4 py-2 text-center font-bold">
