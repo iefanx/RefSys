@@ -85,38 +85,24 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).send(errorHTML);
       }
 
-      
-const salt = crypto.createHmac('sha256', masterSecret).update(id.toString()).digest('hex');
-const encryptionKey = generateKey(masterSecret, salt, currentKeyVersion);
-const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
+      const salt = crypto.createHmac('sha256', masterSecret).update(id.toString()).digest('hex');
+      const encryptionKey = generateKey(masterSecret, salt, currentKeyVersion);
+      const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
 
-const encryptContent = `
-  <p class="text-sm text-gray-300">
-    The data has been securely encrypted using an irreversible hash generated from your unique Event ID (<code>${id}</code>).
-    The hash is derived on the fly and is not stored. 
-    During decryption, the same hash will be regenerated using the Event ID to ensure security without needing a database.
-  </p>
-  <div class="mt-4">
-    <label class="block text-sm font-bold text-gray-300">Encrypted Data:</label>
-    <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${encryptedData}</textarea>
-  </div>
-  <div class="mt-4">
-    <label class="block text-sm font-bold text-gray-300">Generated Hash:</label>
-    <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${salt}</textarea>
-  </div>
-  <div class="mt-4">
-    <label class="block text-sm font-bold text-gray-300">Initialization Vector (IV):</label>
-    <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${iv}</textarea>
-  </div>
-  <a href="/api/encrypt?action=decrypt&encryptedCN=${encodeURIComponent(
-    encryptedData
-  )}&iv=${iv}&id=${id}&version=${currentKeyVersion}" 
-    class="block mt-4 bg-green-600 hover:bg-green-700 rounded p-2 text-center text-white font-bold">
-    Generate Hash and Decrypt
-  </a>`;
-return res.send(generateHTML('Encryption Result', encryptContent));
-
-
+      const encryptContent = 
+        <p class="text-sm text-gray-300">The data has been securely encrypted using an irreversible hash generated from your unique ID.</p>
+        <div class="mt-4">
+          <label class="block text-sm font-bold text-gray-300">Encrypted Data:</label>
+          <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${encryptedData}</textarea>
+        </div>
+        <a href="/api/encrypt?action=decrypt&encryptedCN=${encodeURIComponent(
+          encryptedData
+        )}&iv=${iv}&id=${id}&version=${currentKeyVersion}" 
+          class="block mt-4 bg-green-600 hover:bg-green-700 rounded p-2 text-center text-white font-bold">
+          Decrypt Data
+        </a>;
+      return res.send(generateHTML('Encryption Result', encryptContent));
+    }
     if (action === 'decrypt') {
       const { encryptedCN, iv } = req.query;
 
