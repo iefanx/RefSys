@@ -1,79 +1,85 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import axios from 'axios';
-import crypto from 'node:crypto';
+import crypto from 'crypto';
 
-export default async function verifyHandler(req: VercelRequest, res: VercelResponse) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// Simulate master secret and current key version
+const masterSecret = 'myMasterSecretKeyForHMAC'; // Securely stored
+let currentKeyVersion = 2; // Increment this on key rotation
 
-  // Handle preflight requests (OPTIONS method)
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  const hmacSecretKey = 'your-secret-hmac-key';
+// Function to generate a key using PBKDF2 and versioning
+function generateKey(secret: string, salt: string, version: number): Buffer {
+  return crypto.pbkdf2Sync(`${secret}-${version}`, salt, 100000, 32, 'sha256'); // Generate a 256-bit key
+}
 
-  const { verifyURL = '', encryptedCt = '', hmac } = req.query;
+// Function to encrypt data using AES with versioning
+function encrypt(data: string, key: Buffer): { encryptedData: string; iv: string } {
+  const iv = crypto.randomBytes(16); // Random initialization vector (IV)
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let encrypted = cipher.update(data, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return { encryptedData: encrypted, iv: iv.toString('hex') };
+}
 
-  function generateHmac(data: string) {
-    return crypto.createHmac('sha256', hmacSecretKey)
-      .update(data)
-      .digest('base64url');
-  }
+// Function to decrypt data using AES
+function decrypt(encryptedData: string, key: Buffer, iv: string): string {
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, Buffer.from(iv, 'hex'));
+  let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
 
-  const dataToSign = `${verifyURL}|${encryptedCt}`;
-  const computedHmac = generateHmac(dataToSign);
-
-  if (computedHmac !== hmac) {
-    return res.status(400).json({
-      error: 'Invalid URL or tampered data'
-    });
-  }
-
-  // Ensure verifyURL and encryptedCt are strings
-  let url: string;
-  let ciphertext: string;
-
-  if (Array.isArray(verifyURL)) {
-    url = verifyURL[0];
-  } else {
-    url = verifyURL;
-  }
-
-  if (Array.isArray(encryptedCt)) {
-    ciphertext = encryptedCt[0];
-  } else {
-    ciphertext = encryptedCt;
-  }
-
-  const encryptionKey = Buffer.from('MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=', 'base64');
-
-  function decrypt(ivCiphertextB64: string) {
-    const ivCiphertext = Buffer.from(ivCiphertextB64, 'base64url');
-    const iv = ivCiphertext.subarray(0, 16);
-    const ciphertext = ivCiphertext.subarray(16);
-    const cipher = crypto.createDecipheriv('aes-256-cbc', encryptionKey, iv);
-    let decrypted = Buffer.concat([cipher.update(ciphertext), cipher.final()]);
-    return decrypted.toString('utf-8');
-  }
-
+// Main handler function
+export default function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // Verify if the invoice is settled
-    const verifyResponse = await axios.get(url);
+    const { cn = '', id = '', version = currentKeyVersion, action = 'encrypt' } = req.query;
 
-    if (verifyResponse.status === 200 && verifyResponse.data.settled === true) {
-      // Decrypt the ciphertext since the invoice is settled
-      let decryptedData;
-      try {
-        decryptedData = decrypt(ciphertext);
-        return res.status(200).json({ decryptedData });
-      } catch (error) {
-        return res.status(400).json({ error: 'Decryption failed' });
-      }
-    } else {
-      return res.status(400).json({ error: 'Content is currently encrypted. Please complete your payment to decrypt and access the content.', hmac  });
+    if (!cn || !id) {
+      return res.status(400).json({ error: 'Missing required parameters: cn and id.' });
     }
+
+    const salt = crypto.createHmac('sha256', masterSecret).update(id.toString()).digest('hex'); // Derive salt from ID
+    const decryptionVersion = parseInt(version as string, 10);
+
+    if (action === 'encrypt') {
+      // Encrypt data with the current key version
+      const encryptionKey = generateKey(masterSecret, salt, currentKeyVersion);
+      const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
+
+      return res.status(200).json({
+        message: `The data has been successfully encrypted using an irreversible hash derived from the provided ID (${id}) and the current key version (${currentKeyVersion}).`,
+        instructions: "Save this data securely. You can regenerate the irreversible hash using the same ID and version to decrypt.",
+        encryptedData: encryptedData,
+        iv: iv,
+        version: currentKeyVersion,
+        irreversibleHash: salt,
+        actions: [
+          {
+            label: "Decrypt Data",
+            instructions: "Use the same ID and version to regenerate the key for decryption.",
+            apiCall: `/api/handler?action=decrypt&encryptedCN=${encryptedData}&iv=${iv}&id=${id}&version=${currentKeyVersion}`,
+          },
+        ],
+      });
+    } else if (action === 'decrypt') {
+      // Decrypt data with the specified version
+      const decryptionKey = generateKey(masterSecret, salt, decryptionVersion);
+      const { encryptedCN, iv } = req.query;
+
+      if (!encryptedCN || !iv) {
+        return res.status(400).json({ error: 'Missing required parameters for decryption: encryptedCN and iv.' });
+      }
+
+      const decryptedData = decrypt(encryptedCN.toString(), decryptionKey, iv.toString());
+
+      return res.status(200).json({
+        message: `The data has been successfully decrypted using the hash derived from the provided ID (${id}) and version (${decryptionVersion}).`,
+        decryptedData: decryptedData,
+        version: decryptionVersion,
+        instructions: "This demonstrates how the encryption method allows for key rotation without relying on a database.",
+      });
+    }
+
+    return res.status(400).json({ error: 'Invalid action specified. Use "encrypt" or "decrypt".' });
   } catch (error) {
-    return res.status(500).json({ error: 'Verification failed', details: error.message });
+    res.status(500).json({ error: 'An error occurred.', details: error.message });
   }
 }
