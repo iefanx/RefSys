@@ -77,7 +77,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       <form action="/api/encrypt" method="get" class="space-y-6">
         <input type="hidden" name="action" value="encrypt">
         
-        <div class="space-y-2 px-2">
+        <div class="space-y-1 px-2">
           <label class="block">
             <span class="text-sm font-semibold text-gray-300">Unique Event Data (ID):</span>
             <div class="mt-1">
@@ -93,7 +93,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           </label>
         </div>
 
-        <div class="space-y-2">
+        <div class="space-y-1 px-2">
           <label class="block">
             <span class="text-sm font-semibold text-gray-300">Content to Encrypt:</span>
             <div class="mt-1">
