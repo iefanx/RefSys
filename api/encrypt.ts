@@ -65,7 +65,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
             This demo showcases a secure, database-free encryption system:
           </p>
           <ol class="list-decimal list-inside space-y-2">
-            <li>Enter your unique event data (e.g., transaction ID, event timestamp)</li>
+            <li>Enter your unique event data (e.g., Event ID, tags)</li>
             <li>The system generates an irreversible cryptographic hash from this data</li>
             <li>This hash is used as a key to encrypt your content</li>
             <li>No sensitive data or keys are stored - everything can be regenerated using your event data</li>
@@ -84,7 +84,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
               <input 
                 type="text" 
                 name="id" 
-                placeholder="e.g., transaction_123, event_timestamp" 
+                placeholder="e.g., Event ID, Tags" 
                 class="w-full bg-gray-800 rounded-lg p-3 text-sm text-gray-200 border border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
                 required
               >
