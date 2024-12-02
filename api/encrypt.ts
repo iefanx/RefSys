@@ -61,7 +61,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
     if (action === 'home') {
       const homeContent = `
-        <form action="/" method="get" class="space-y-4">
+        <form action="/api/encrypt" method="get" class="space-y-4">
           <input type="hidden" name="action" value="encrypt">
           <label class="block">
             <span class="text-sm">Unique Event Data (ID):</span>
