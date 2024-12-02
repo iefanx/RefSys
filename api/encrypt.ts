@@ -93,7 +93,7 @@ const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
 const encryptContent = `
   <p class="text-sm text-gray-300">
     The data has been securely encrypted using an irreversible hash generated from your unique Event ID (<code>${id}</code>).
-    This hash (<code>${salt}</code>) is derived on the fly and is not stored. 
+    The hash is derived on the fly and is not stored. 
     During decryption, the same hash will be regenerated using the Event ID to ensure security without needing a database.
   </p>
   <div class="mt-4">
