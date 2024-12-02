@@ -39,9 +39,9 @@ function generateHTML(title: string, content: string): string {
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white font-sans">
-  <div class="flex min-h-screen items-center justify-center px-4">
-    <div class="w-full max-w-md bg-gray-900 rounded-lg shadow-md p-6">
-      <h1 class="text-2xl font-bold text-center text-gray-100">${title}</h1>
+  <div class="flex min-h-screen items-center justify-center px-2">
+    <div class="w-full max-w-md bg-gray-900 rounded-lg shadow-md p-2">
+      <h1 class="text-xl font-bold text-center text-gray-100">${title}</h1>
       <p class="text-xs text-gray-400 mt-2 text-center">A secure encryption demo built with modern cryptographic methods.</p>
       <div class="mt-4">${content}</div>
     </div>
@@ -57,7 +57,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
     if (action === 'home') {
       const homeContent = `
-        <form action="/api/encrypt" method="get" class="space-y-4">
+        <form action="/api/encrypt" method="get" class="space-y-2">
           <input type="hidden" name="action" value="encrypt">
           <label class="block">
             <span class="text-sm text-gray-300">Unique Event Data (ID):</span>
@@ -95,8 +95,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
 
   const encryptContent = `
-    <div class="space-y-6">
-      <div class="bg-gray-900 rounded-lg p-4">
+    <div class="space-y-2">
+      <div class="bg-gray-900 rounded-lg p-2">
         <h3 class="text-lg font-semibold text-gray-200 mb-2">Security Information</h3>
         <p class="text-sm text-gray-300 leading-relaxed">
           Your data has been encrypted using a secure process:
@@ -108,7 +108,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         </p>
       </div>
 
-      <div class="space-y-4">
+      <div class="space-y-2">
         <div>
           <label class="block text-sm font-bold text-gray-300">Event Hash:</label>
           <input class="w-full bg-gray-800 rounded p-2 mt-1 text-sm font-mono text-gray-200" 
