@@ -107,7 +107,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
             <p class="mt-1 text-xs text-gray-400">This content will be encrypted using a hash derived from your event data.</p>
           </label>
         </div>
-
+        <div class= "px-2">
         <button 
           type="submit" 
           class="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-3 px-4 text-sm font-bold text-white transition-colors duration-200 inline-flex items-center justify-center space-x-2"
@@ -117,6 +117,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           </svg>
           <span>Generate Hash & Encrypt Data</span>
         </button>
+        </div>
       </form>
 
       <div class="bg-blue-900/20 rounded-lg p-4 border border-blue-800/30">
