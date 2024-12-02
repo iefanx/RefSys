@@ -39,8 +39,8 @@ function generateHTML(title: string, content: string): string {
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-black text-white font-sans">
-  <div class="flex min-h-screen items-center justify-center px-2">
-    <div class="w-full max-w-md bg-gray-900 rounded-lg shadow-md p-2">
+  <div class="flex min-h-screen items-center justify-center pt-2">
+    <div class="w-full max-w-full bg-gray-900  ">
       <h1 class="text-xl font-bold text-center text-gray-100">${title}</h1>
       <p class="text-xs text-gray-400 mt-2 text-center">A secure encryption demo built with modern cryptographic methods.</p>
       <div class="mt-4">${content}</div>
