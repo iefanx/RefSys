@@ -179,7 +179,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         </p>
       </div>
 
-      <div class="space-y-4">
+      <div class="space-y-4 px-2">
         <div>
           <label class="block text-sm font-bold text-gray-300">Regenerated Hash:</label>
           <input class="w-full bg-gray-800 rounded p-2 mt-1 text-sm font-mono text-gray-200" 
