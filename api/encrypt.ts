@@ -90,15 +90,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
 
       const encryptContent = 
-        <p class="text-sm text-gray-300">
-          The data has been securely encrypted using an irreversible hash derived from your unique ID 
-          (<code>${id}</code>) and the current key version (<code>${currentKeyVersion}</code>).
-        </p>
-        <p class="text-sm text-gray-300 mt-2">
-          This hash is generated dynamically using your unique event data and does not need to be stored in a database. 
-          During decryption, the same hash will be regenerated from the event data to securely decrypt the information, 
-          ensuring enhanced security and eliminating reliance on external storage.
-        </p>
+        <p class="text-sm text-gray-300"<p class="text-sm text-gray-300">The data has been securely encrypted using an irreversible hash generated from your unique ID.</p>
         <div class="mt-4">
           <label class="block text-sm font-bold text-gray-300">Encrypted Data:</label>
           <textarea class="w-full bg-gray-800 rounded p-2 mt-1 text-sm text-gray-200" readonly>${encryptedData}</textarea>
