@@ -96,7 +96,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
   const encryptContent = `
     <div class="space-y-4">
-      <div class="bg-gray-900 rounded-lg p-2">
+      <div class="bg-gray-900 rounded-lg p-4">
         <h3 class="text-lg font-semibold text-gray-200 mb-2">Security Information</h3>
         <p class="text-sm text-gray-300 leading-relaxed">
           Your data has been encrypted using a secure process:
