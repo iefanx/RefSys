@@ -33,42 +33,110 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const { cn = '', id = '', version = currentKeyVersion } = req.query;
 
     if (!cn || !id) {
-      return res.status(400).json({ error: 'Missing required parameters: cn and id.' });
+      return res.send(`
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <title>Error</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+          </head>
+          <body class="bg-black text-white flex items-center justify-center min-h-screen">
+            <div class="text-center">
+              <h1 class="text-2xl font-bold">Error</h1>
+              <p class="text-lg">Missing required parameters: <code>cn</code> and <code>id</code>.</p>
+            </div>
+          </body>
+        </html>
+      `);
     }
 
     const action = req.query.action || 'encrypt'; // Default to encryption
     const salt = crypto.createHmac('sha256', masterSecret).update(id.toString()).digest('hex'); // Derive salt from ID
 
+    let content;
     if (action === 'encrypt') {
-      // Encrypt data with the current key version
       const encryptionKey = generateKey(masterSecret, salt, currentKeyVersion);
       const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
 
-      return res.status(200).json({
-        encryptedCN: encryptedData,
-        iv,
-        version: currentKeyVersion,
-      });
+      content = `
+        <div class="space-y-4">
+          <h2 class="text-xl font-bold">Encryption</h2>
+          <p><strong>Original Data:</strong> ${cn}</p>
+          <p><strong>Salt:</strong> ${salt}</p>
+          <p><strong>IV:</strong> ${iv}</p>
+          <p><strong>Encrypted Data:</strong> ${encryptedData}</p>
+          <p><strong>Key Version:</strong> ${currentKeyVersion}</p>
+        </div>
+      `;
     } else if (action === 'decrypt') {
-      // Decrypt data with the specified version
       const decryptionVersion = parseInt(version as string, 10);
       const decryptionKey = generateKey(masterSecret, salt, decryptionVersion);
       const { encryptedCN, iv } = req.query;
 
       if (!encryptedCN || !iv) {
-        return res.status(400).json({ error: 'Missing required parameters for decryption: encryptedCN and iv.' });
+        return res.send(`
+          <!DOCTYPE html>
+          <html lang="en">
+            <head>
+              <title>Error</title>
+              <script src="https://cdn.tailwindcss.com"></script>
+            </head>
+            <body class="bg-black text-white flex items-center justify-center min-h-screen">
+              <div class="text-center">
+                <h1 class="text-2xl font-bold">Error</h1>
+                <p class="text-lg">Missing parameters for decryption: <code>encryptedCN</code> and <code>iv</code>.</p>
+              </div>
+            </body>
+          </html>
+        `);
       }
 
       const decryptedData = decrypt(encryptedCN.toString(), decryptionKey, iv.toString());
 
-      return res.status(200).json({
-        decryptedCN: decryptedData,
-        version: decryptionVersion,
-      });
+      content = `
+        <div class="space-y-4">
+          <h2 class="text-xl font-bold">Decryption</h2>
+          <p><strong>Encrypted Data:</strong> ${encryptedCN}</p>
+          <p><strong>Salt:</strong> ${salt}</p>
+          <p><strong>IV:</strong> ${iv}</p>
+          <p><strong>Decrypted Data:</strong> ${decryptedData}</p>
+          <p><strong>Key Version:</strong> ${decryptionVersion}</p>
+        </div>
+      `;
+    } else {
+      content = '<p class="text-lg">Invalid action specified. Use "encrypt" or "decrypt".</p>';
     }
 
-    return res.status(400).json({ error: 'Invalid action specified. Use "encrypt" or "decrypt".' });
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <title>Encryption/Decryption</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body class="bg-black text-white flex items-center justify-center min-h-screen">
+          <div class="max-w-3xl mx-auto p-6 space-y-8 bg-gray-900 rounded-lg shadow-md">
+            <h1 class="text-3xl font-bold text-center">Encryption/Decryption Handler</h1>
+            ${content}
+          </div>
+        </body>
+      </html>
+    `);
   } catch (error) {
-    res.status(500).json({ error: 'An error occurred.', details: error.message });
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <title>Error</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body class="bg-black text-white flex items-center justify-center min-h-screen">
+          <div class="text-center">
+            <h1 class="text-2xl font-bold">Error</h1>
+            <p class="text-lg">An error occurred: ${error.message}</p>
+          </div>
+        </body>
+      </html>
+    `);
   }
 }
