@@ -60,7 +60,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     <div class="space-y-3">
       <div class="bg-gray-900 rounded-lg p-2">
         <h2 class="text-xl font-bold text-gray-100 mb-3">How It Works</h2>
-        <div class="text-sm text-gray-300 space-y-2">
+        <div class="text-sm  space-y-2">
           <p class="leading-relaxed">
             This demo showcases a secure, database-free encryption system:
           </p>
