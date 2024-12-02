@@ -27,120 +27,119 @@ function decrypt(encryptedData: string, key: Buffer, iv: string): string {
   return decrypted;
 }
 
+// HTML Template
+function generateHTML(title: string, content: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans">
+  <div class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-2xl bg-gray-800 rounded-lg shadow-lg p-8">
+      <h1 class="text-3xl font-bold text-center mb-6">${title}</h1>
+      ${content}
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 // Main handler function
 export default function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const { cn = '', id = '', action = 'encrypt', version = currentKeyVersion } = req.query;
+    const { cn = '', id = '', version = currentKeyVersion, action = 'encrypt' } = req.query;
 
-    let demonstrationContent = `
-      <div class="text-center mt-6">
-        <button 
-          id="demoButton" 
-          class="bg-blue-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-700 transition"
-          onclick="startDemo()"
-        >
-          Start Demonstration
-        </button>
-      </div>
-    `;
-
-    let explanation = `
-      <p class="text-lg">This application demonstrates the encryption and decryption process using AES-256-CBC. Below are the steps:</p>
-      <ul class="list-disc pl-5 space-y-2 mt-4 text-left">
-        <li><strong>Encryption:</strong> The provided data is encrypted with a versioned key and a randomly generated Initialization Vector (IV).</li>
-        <li><strong>Decryption:</strong> The encrypted data can be decrypted with the correct version of the key and the same IV.</li>
-        <li><strong>Versioned Keys:</strong> The system uses versioned keys for added security, allowing for key rotation.</li>
-        <li><strong>PBKDF2:</strong> The key is derived using PBKDF2 for additional strength against brute-force attacks.</li>
-      </ul>
-    `;
-
-    let content = demonstrationContent + explanation;
-
-    if (cn && id) {
-      const salt = crypto.createHmac('sha256', masterSecret).update(id.toString()).digest('hex');
-      const keyVersion = parseInt(version as string, 10);
-
-      if (action === 'encrypt') {
-        const encryptionKey = generateKey(masterSecret, salt, currentKeyVersion);
-        const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
-
-        content = `
-          <h2 class="text-xl font-bold">Encryption Results</h2>
-          <div class="text-left space-y-2 mt-4">
-            <p><strong>Original Data:</strong> ${cn}</p>
-            <p><strong>Salt Derived:</strong> ${salt}</p>
-            <p><strong>Initialization Vector (IV):</strong> ${iv}</p>
-            <p><strong>Encrypted Data:</strong> ${encryptedData}</p>
-            <p><strong>Key Version:</strong> ${currentKeyVersion}</p>
-          </div>
-          ${demonstrationContent}
-        `;
-      } else if (action === 'decrypt') {
-        const decryptionKey = generateKey(masterSecret, salt, keyVersion);
-        const { encryptedCN, iv } = req.query;
-
-        if (!encryptedCN || !iv) {
-          content = `
-            <p class="text-lg text-red-500">Missing required parameters for decryption: <code>encryptedCN</code> and <code>iv</code>.</p>
-          `;
-        } else {
-          const decryptedData = decrypt(encryptedCN.toString(), decryptionKey, iv.toString());
-
-          content = `
-            <h2 class="text-xl font-bold">Decryption Results</h2>
-            <div class="text-left space-y-2 mt-4">
-              <p><strong>Encrypted Data:</strong> ${encryptedCN}</p>
-              <p><strong>Initialization Vector (IV):</strong> ${iv}</p>
-              <p><strong>Decrypted Data:</strong> ${decryptedData}</p>
-              <p><strong>Key Version Used:</strong> ${keyVersion}</p>
-            </div>
-            ${demonstrationContent}
-          `;
-        }
-      }
+    if (!cn || !id) {
+      const errorHTML = generateHTML(
+        'Error',
+        `<p class="text-center text-red-500">Missing required parameters: <code>cn</code> and <code>id</code>.</p>`
+      );
+      return res.status(400).send(errorHTML);
     }
 
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Encryption Demonstration</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-      </head>
-      <body class="bg-black text-white min-h-screen flex items-center justify-center p-4">
-        <div class="max-w-2xl w-full bg-gray-900 p-6 rounded-lg shadow-lg">
-          <h1 class="text-3xl font-bold text-center mb-6">Encryption & Decryption Demo</h1>
-          ${content}
+    const salt = crypto.createHmac('sha256', masterSecret).update(id.toString()).digest('hex'); // Derive salt from ID
+    const decryptionVersion = parseInt(version as string, 10);
+
+    if (action === 'encrypt') {
+      // Encrypt data with the current key version
+      const encryptionKey = generateKey(masterSecret, salt, currentKeyVersion);
+      const { encryptedData, iv } = encrypt(cn.toString(), encryptionKey);
+
+      const content = `
+        <p class="mb-4">
+          The data has been successfully <span class="text-green-500 font-bold">encrypted</span> using an 
+          irreversible hash derived from the provided ID (<code>${id}</code>) and the current key version 
+          (<code>${currentKeyVersion}</code>).
+        </p>
+        <div class="mb-6">
+          <h2 class="font-bold text-lg mb-2">Encrypted Data:</h2>
+          <textarea class="w-full bg-gray-700 rounded-lg p-2" readonly>${encryptedData}</textarea>
         </div>
-        <script>
-          function startDemo() {
-            const exampleCN = 'ExampleData';
-            const exampleID = '12345';
-            window.location.href = '?cn=' + encodeURIComponent(exampleCN) + '&id=' + encodeURIComponent(exampleID) + '&action=encrypt';
-          }
-        </script>
-      </body>
-      </html>
-    `);
+        <div class="mb-6">
+          <h2 class="font-bold text-lg mb-2">IV:</h2>
+          <textarea class="w-full bg-gray-700 rounded-lg p-2" readonly>${iv}</textarea>
+        </div>
+        <div class="mb-6">
+          <h2 class="font-bold text-lg mb-2">Irreversible Hash:</h2>
+          <textarea class="w-full bg-gray-700 rounded-lg p-2" readonly>${salt}</textarea>
+        </div>
+        <a href="?action=decrypt&encryptedCN=${encodeURIComponent(
+          encryptedData
+        )}&iv=${iv}&id=${id}&version=${currentKeyVersion}" 
+          class="block text-center bg-green-500 hover:bg-green-600 rounded-lg px-4 py-2 font-bold text-gray-900">
+          Decrypt Data
+        </a>
+      `;
+
+      return res.status(200).send(generateHTML('Encryption Successful', content));
+    } else if (action === 'decrypt') {
+      // Decrypt data with the specified version
+      const { encryptedCN, iv } = req.query;
+
+      if (!encryptedCN || !iv) {
+        const errorHTML = generateHTML(
+          'Error',
+          `<p class="text-center text-red-500">Missing required parameters for decryption: <code>encryptedCN</code> and <code>iv</code>.</p>`
+        );
+        return res.status(400).send(errorHTML);
+      }
+
+      const decryptionKey = generateKey(masterSecret, salt, decryptionVersion);
+      const decryptedData = decrypt(encryptedCN.toString(), decryptionKey, iv.toString());
+
+      const content = `
+        <p class="mb-4">
+          The data has been successfully <span class="text-blue-500 font-bold">decrypted</span> using the 
+          hash derived from the provided ID (<code>${id}</code>) and version (<code>${decryptionVersion}</code>).
+        </p>
+        <div class="mb-6">
+          <h2 class="font-bold text-lg mb-2">Decrypted Data:</h2>
+          <textarea class="w-full bg-gray-700 rounded-lg p-2" readonly>${decryptedData}</textarea>
+        </div>
+        <a href="/" 
+          class="block text-center bg-gray-500 hover:bg-gray-600 rounded-lg px-4 py-2 font-bold text-gray-900">
+          Back to Encrypt
+        </a>
+      `;
+
+      return res.status(200).send(generateHTML('Decryption Successful', content));
+    }
+
+    const errorHTML = generateHTML(
+      'Error',
+      `<p class="text-center text-red-500">Invalid action specified. Use <code>encrypt</code> or <code>decrypt</code>.</p>`
+    );
+    return res.status(400).send(errorHTML);
   } catch (error) {
-    res.send(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Error</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-      </head>
-      <body class="bg-black text-white min-h-screen flex items-center justify-center">
-        <div class="text-center">
-          <h1 class="text-2xl font-bold">Error</h1>
-          <p class="text-lg">An error occurred: ${error.message}</p>
-        </div>
-      </body>
-      </html>
-    `);
+    const errorHTML = generateHTML(
+      'Error',
+      `<p class="text-center text-red-500">An error occurred: ${error.message}</p>`
+    );
+    res.status(500).send(errorHTML);
   }
 }
