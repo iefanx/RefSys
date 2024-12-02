@@ -120,6 +120,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         </div>
       </form>
 
+      <div class="px-2">
       <div class="bg-blue-900/20 rounded-lg p-4 border border-blue-800/30">
         <div class="flex items-start space-x-3">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,6 +136,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           </div>
         </div>
       </div>
+    </div>
     </div>`;
 
   return res.send(generateHTML('Secure Database-Free Encryption Demo', homeContent));
